@@ -4,7 +4,7 @@ PATH_TO_CONFIG_FILE = "config/waitr.conf"
 
 _config = None
 
-def init_config():
+def init_config() -> None:
     global _config
     with open(PATH_TO_CONFIG_FILE, "rb") as f:
         _config = tomllib.load(f)
