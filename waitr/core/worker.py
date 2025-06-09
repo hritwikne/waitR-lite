@@ -7,7 +7,7 @@ import selectors
 import logging
 
 from waitr.core.config import get_config
-from waitr.core.socket import recv_fd_from_uds
+from waitr.core.uds import recv_fd_from_uds
 from waitr.http.parser import parse_request, is_full_http_request
 from waitr.http.static_handler import serve_static_file
 from waitr.http.proxy import proxy_to_upstream, match_proxy_route

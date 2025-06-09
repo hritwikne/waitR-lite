@@ -5,7 +5,7 @@ import socket
 import logging
 from cachetools import TTLCache
 
-from waitr.core.socket import send_fd_via_uds
+from waitr.core.uds import send_fd_via_uds
 from waitr.core.config import init_config, get_config
 from waitr.core.worker import run_worker
 
