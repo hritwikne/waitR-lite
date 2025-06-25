@@ -5,6 +5,7 @@ import signal
 import time
 import selectors
 import logging
+import platform
 
 from waitr.core.config import get_config
 from waitr.core.uds import recv_fd_from_uds
@@ -16,6 +17,18 @@ IDLE_TIMEOUT = 60  # seconds
 shutdown_flag = False
 active_connections = {} # sock: conn_state
 logger = logging.getLogger('waitr.core.worker')
+
+def get_compatible_selector():
+    os_name = platform.system()
+    if os_name == "Darwin":
+        return selectors.SelectSelector()
+    elif os_name == "Linux":
+        return selectors.DefaultSelector()
+    else:
+        print(f"Unsupported OS: {os_name}")
+        sys.exit(1)
+
+selector = get_compatible_selector()
 
 def close_connection(sock: socket.socket) -> None:
     try:
