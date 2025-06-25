@@ -13,9 +13,8 @@ from waitr.http.static_handler import serve_static_file
 from waitr.http.proxy import proxy_to_upstream, match_proxy_route
 
 IDLE_TIMEOUT = 60  # seconds
+shutdown_flag = False
 active_connections = {} # sock: conn_state
-
-selector = selectors.DefaultSelector()
 logger = logging.getLogger('waitr.core.worker')
 
 def close_connection(sock: socket.socket) -> None:
@@ -140,15 +139,13 @@ def handle_msg_receive(unix_sock, mask):
         active_connections[client_sock] = conn_state
         logger.debug(f"Received fd from master process: {client_fd}")
 
+def handle_sigterm(signum, frame):
+    logger.info("Received SIGTERM signal")
+    global shutdown_flag
+    shutdown_flag = True
+
 def run_worker(unix_sock):
-    shutdown_flag = False
     logger.info(f"Worker PID {os.getpid()} started")
-
-    def handle_sigterm(signum, frame):
-        logger.info("Received SIGTERM signal")
-        global shutdown_flag
-        shutdown_flag = True
-
     signal.signal(signal.SIGTERM, handle_sigterm)
 
     try:
@@ -161,6 +158,7 @@ def run_worker(unix_sock):
     logger.info("Starting event loop")
 
     # Event Loop
+    global shutdown_flag
     while not shutdown_flag:
         try:
             events = selector.select(timeout=5)
@@ -183,6 +181,10 @@ def run_worker(unix_sock):
                 close_connection(sock)
     
     logger.debug("Shutdown initiated. Closing all active connections.")
+    try:
+        selector.unregister(unix_sock)
+    except KeyError:
+        pass
     selector.close()
     
     for sock, info in list(active_connections.items()):

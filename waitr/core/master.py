@@ -52,7 +52,7 @@ def start_workers(n, server_socket):
                 other_sock.close() 
             logger.debug("Closed unused fd's")
 
-            signal.signal(signal.SIGINT, signal.SIG_DFL) # remove sigint handler inherited from master
+            signal.signal(signal.SIGINT, signal.SIG_IGN) # remove sigint handler inherited from master
             run_worker(child_sock)
             sys.exit(0)
         else:
